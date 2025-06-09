@@ -1,0 +1,16 @@
+{
+    "WATCH_FOLDER": "D:/定期练手/自动归纳/monitor",
+    "OUTPUT_BASE_FOLDER": "D:/定期练手/自动归纳/classified",
+    "DELAY_SECONDS": 3,
+    "SUPPORTED_EXTS": [
+        ".docx",
+        ".pdf",
+        ".pptx",
+        ".ppt",
+        ".doc",
+        ".wps",
+        ".mp4",
+        ".wbd"
+    ],
+    "AUTO_START": true
+}
