@@ -12,7 +12,7 @@ def clean_text(text):
 
 
 # 设置路径
-data_dir = "extracted_texts"  # 假设你已按科目整理好文件夹
+data_dir = "extracted_texts"  # 请按科目整理好文件夹
 categories = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
 
 texts = []
