@@ -36,7 +36,7 @@ DELAY_SECONDS = config["DELAY_SECONDS"]
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-# 学科关键词映射表（保留不变）
+# 学科关键词映射表
 SUBJECT_KEYWORDS = {
     '语文': ['语文', '文言文', '古诗', '作文', '阅读理解', '现代文', '议论文', '小说鉴赏', '散文赏析', '写作指导'],
     '数学': ['数学', '函数', '几何', '方程', '代数', '集合', '不等式', '三角函数', '概率统计', '解析几何', '立体几何'],
