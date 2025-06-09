@@ -10,7 +10,7 @@ import tempfile
 import fitz  # PyMuPDF for PDF to image conversion
 import shutil
 
-# 设置 Tesseract 路径（如果你没加到环境变量）
+# 设置 Tesseract 路径
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 
@@ -59,7 +59,7 @@ def ocr_pdf(pdf_path):
 
     for page_num in range(len(doc)):
         page = doc.load_page(page_num)
-        pix = page.get_pixmap(dpi=200)  # 高 DPI 更清晰
+        pix = page.get_pixmap(dpi=200)
         img_path = os.path.join(temp_dir, f"page_{page_num}.png")
         pix.save(img_path)
         texts.append(ocr_image(img_path))
@@ -75,9 +75,9 @@ def ocr_image(image_path):
         img = cv2.imread(image_path)
         # 转灰度图
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # 二值化处理（可选）
+        # 二值化处理
         _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-        # OCR 识别（lang='chi_sim' 表示简体中文）
+        # OCR 识别
         text = pytesseract.image_to_string(binary, lang='chi_sim')
         return text
     except Exception as e:
