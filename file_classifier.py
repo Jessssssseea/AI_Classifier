@@ -23,14 +23,14 @@ OUTPUT_BASE_FOLDER = os.path.expanduser("D:\定期练手\自动归纳\monitor") 
 SUPPORTED_EXTS = ['.docx', '.pdf', '.pptx', '.wps', '.mp4', '.wbd']  # 支持的文件类型
 DELAY_SECONDS = 3  # 延迟识别时间（秒）
 
-# 设置 Tesseract 路径（如未加入系统环境变量）
+# 设置 Tesseract 路径
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # U盘卷标映射表
 USB_LABEL_MAP = {
     '黄': '语文',
     '杨': '数学',
-    '黄漫霞备份': '英语'
+    '黄': '英语'
 }
 
 # 科目关键词映射
