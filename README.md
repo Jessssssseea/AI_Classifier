@@ -67,7 +67,7 @@ python file_classifier.py
 - **`file_classifier.log`**：日志文件，记录文件处理过程中的信息。
 
 ## 注意事项
-1. 确保[Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)已安装，并在代码中正确设置`pytesseract.pytesseract.tesseract_cmd`路径。
+1. 确保[Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)已安装，并使用`config_editor`正确设置`Tesseract`路径。
 2. 若文件在复制过程中，可能会出现文件无法访问的情况，工具会等待文件复制完成后再进行处理。
 3. 对于某些特殊格式的文件（如WBD），可能需要特殊解析器，目前暂不支持内容提取。
 
