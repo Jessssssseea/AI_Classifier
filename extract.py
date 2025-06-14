@@ -7,12 +7,19 @@ from PIL import Image
 import pytesseract
 import cv2
 import tempfile
-import fitz  # PyMuPDF for PDF to image conversion
+import fitz  # PyMuPDF
 import shutil
+import json
 
 # 设置 Tesseract 路径
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
+CONFIG_FILE = "config.json"
+try:
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        config = json.load(f)
+except FileNotFoundError:
+    print("⚠️ 未找到配置文件，请先运行配置工具")
+    exit(1)
+pytesseract.pytesseract.tesseract_cmd = config["TESSERACT_PATH"]
 
 def clean_text(text):
     return re.sub(r'\s+', ' ', text).strip()
@@ -71,11 +78,8 @@ def ocr_pdf(pdf_path):
 def ocr_image(image_path):
     """对图像进行 OCR 识别"""
     try:
-        # 读取图像
         img = cv2.imread(image_path)
-        # 转灰度图
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # 二值化处理
         _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
         # OCR 识别
         text = pytesseract.image_to_string(binary, lang='chi_sim')

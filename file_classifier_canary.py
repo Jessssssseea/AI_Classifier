@@ -1,3 +1,9 @@
+'''
+pyinstaller -D -n "file_classifier" -i "icon.ico" --hidden-import "sklearn.utils._typedefs" --hidden-import "sklear
+n.utils._cython_blas" --hidden-import "sklearn.neighbors.typedefs" --hidden-import "sklearn.neighbors.quad_tree" --hidden-import "sklearn.tree._util
+s" --hidden-import "winrt.windows.ui.notifications" --hidden-import "winrt.windows.data.xml.dom" --hidden-import "pystray._win32" --hidden-import "p
+ytesseract" --hidden-import "cv2" --collect-all "sklearn" --collect-all "joblib" --collect-all "threadpoolctl" --collect-all "scipy" --collect-all "numpy" --collect-all "PIL" file_classifier_canary.py -w
+'''
 import os
 import sys
 import time
@@ -9,7 +15,7 @@ import json
 import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from PIL import Image, ImageDraw
+from PIL import Image
 from pystray import Icon as icon, Menu as menu, MenuItem as item
 import joblib
 import docx
@@ -31,16 +37,14 @@ try:
         config = json.load(f)
 except FileNotFoundError:
     print("⚠️ 未找到配置文件，请先运行配置工具")
-    exit(1)
+    sys.exit(1)
 
 WATCH_FOLDER = config["WATCH_FOLDER"]
-print('[监视文件夹]:', WATCH_FOLDER)
 OUTPUT_BASE_FOLDER = config["OUTPUT_BASE_FOLDER"]
-print('[移动文件夹]:', OUTPUT_BASE_FOLDER)
 SUPPORTED_EXTS = config["SUPPORTED_EXTS"]
 DELAY_SECONDS = config.get("DELAY_SECONDS", 3)
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = config["TESSERACT_PATH"]
 
 # 学科关键词映射表
 SUBJECT_KEYWORDS = {
@@ -48,24 +52,20 @@ SUBJECT_KEYWORDS = {
     '数学': ['数学', '函数', '几何', '方程', '代数', '集合', '不等式', '三角函数', '概率统计', '解析几何', '立体几何'],
     '英语': ['英语', '单词', '语法', 'reading', '听力', '作文', '完形填空', '阅读理解', '语法填空', '短文改错'],
     '物理': ['ck', '物理', '力', '能量', '电学', '磁场', '电磁感应', '动量守恒', '牛顿定律', '曲线运动', '机械振动'],
-    '化学': ['化学', '反应', '元素', '物质', '方程式', '离子反应', '氧化还原', '有机化学', '无机化学', '化学平衡',
-             '化合物'],
+    '化学': ['化学', '反应', '元素', '物质', '方程式', '离子反应', '氧化还原', '有机化学', '无机化学', '化学平衡', '化合物'],
     '生物': ['生物', '细胞', 'DNA', '生态', '遗传', '基因', '光合作用', '呼吸作用', '种群', '生态系统'],
     '历史': ['历史', '朝代', '战争', '文明', '近代史', '古代史', '世界史', '中国史', '改革', '政治制度'],
     '政治': ['政治', '法律', '公民', '制度', '国家', '人民代表大会', '中国特色社会主义', '哲学生活', '文化与生活'],
     '地理': ['地理', '气候', '地形', '区域', '地图', '地球运动', '大气环流', '水循环', '农业区位', '工业区位']
 }
 
-
 # ==================== 工具函数 ====================
 def clean_text(text):
     return re.sub(r'\s+', ' ', text).strip()
 
-
 def ensure_folder_exists(folder):
     if not os.path.exists(folder):
         os.makedirs(folder)
-
 
 # ==================== 提取内容函数 ====================
 def extract_docx(file_path):
@@ -76,7 +76,6 @@ def extract_docx(file_path):
         log(f"DOCX提取失败: {file_path} - {e}")
         return None
 
-
 def extract_pptx(file_path):
     try:
         pres = pptx.Presentation(file_path)
@@ -85,7 +84,6 @@ def extract_pptx(file_path):
     except Exception as e:
         log(f"PPTX提取失败: {file_path} - {e}")
         return None
-
 
 def extract_pdf(file_path):
     try:
@@ -98,7 +96,6 @@ def extract_pdf(file_path):
         log(f"PDF原生提取失败，尝试OCR：{file_path} - {e}")
         return ocr_pdf(file_path)
 
-
 def ocr_image(image_path):
     try:
         img = cv2.imread(image_path)
@@ -109,7 +106,6 @@ def ocr_image(image_path):
     except Exception as e:
         log(f"OCR识别失败: {image_path} - {e}")
         return ""
-
 
 def ocr_pdf(pdf_path):
     try:
@@ -130,7 +126,6 @@ def ocr_pdf(pdf_path):
         log(f"OCR转换失败: {pdf_path} - {e}")
         return ""
 
-
 def extract_content(file_path):
     ext = os.path.splitext(file_path)[1].lower()
     if ext == ".docx":
@@ -142,15 +137,13 @@ def extract_content(file_path):
     else:
         return ""
 
-
 # ==================== 加载模型 ====================
 try:
     clf = joblib.load("subject_classifier.pkl")
     vectorizer = joblib.load("tfidf_vectorizer.pkl")
 except Exception as e:
     print("⚠️ 模型文件未找到，请先运行训练脚本！", e)
-    exit(1)
-
+    sys.exit(1)
 
 # ==================== 文件名辅助判断 ====================
 def guess_by_filename(filename):
@@ -170,7 +163,6 @@ def guess_by_filename(filename):
     candidates = [k for k, v in scores.items() if v == max_score]
     return candidates[0] if len(candidates) == 1 else None
 
-
 # ==================== 主分类逻辑（先文件名后内容）====================
 def classify_file(file_path):
     subject = guess_by_filename(file_path)
@@ -187,7 +179,6 @@ def classify_file(file_path):
 
     return None
 
-
 # ==================== 日志模块 ====================
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -196,11 +187,9 @@ formatter = logging.Formatter('%(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-
 def log(msg):
-    print(f"[{time.strftime('%H:%M:%S')}] {msg}")
+    print(f"[{time.strftime('%D  %H:%M:%S')}] {msg}")
     logger.info(msg)
-
 
 # ==================== 文件处理缓存 ====================
 processed_files = set()
@@ -209,38 +198,41 @@ processed_lock = threading.Lock()
 
 # ===================== 通知 =========================
 def save_result(result):
-    # 将结果保存到文件中
     with open('temp_msg.txt', 'w', encoding='utf-8') as file:
         file.write(result)
 
-
 def send_toast(subject, file_path):
-    message = f"文件 {os.path.basename(file_path)} 分类为：{subject}\n是否正确？（请在5s内判断）\n如果正确请不要理睬此消息，或关闭\n如果错误，请点击此消息，文件会自动移回"
+    if file_path == "STARTUP":
+        title = "AI课件分类器已启动"
+        message = f"开始监视文件夹: {WATCH_FOLDER}\n文件将分类到: {OUTPUT_BASE_FOLDER}"
+    else:
+        title = f"分类：{subject}"
+        message = f"文件 {os.path.basename(file_path)} 分类为：{subject}\n是否正确？（请在5s内判断）\n如果正确请不要理睬此消息，或关闭\n如果错误，请点击此消息，文件会自动移回"
 
-    # 创建 XML 模板
     toast_xml = notifications.ToastNotificationManager.get_template_content(
         notifications.ToastTemplateType.TOAST_TEXT02)
 
-    # 设置通知文本内容
     text_elements = toast_xml.get_elements_by_tag_name("text")
-    text_elements[0].append_child(toast_xml.create_text_node('分类：' + subject))
+    text_elements[0].append_child(toast_xml.create_text_node(title))
     text_elements[1].append_child(toast_xml.create_text_node(message))
 
-    # 发送通知
     notifier = notifications.ToastNotificationManager.create_toast_notifier("AI课件分类器")
     toast = notifications.ToastNotification(toast_xml)
 
-    # 绑定事件
-    toast.add_activated(lambda _, __: save_result("no"))  # 点击通知时保存 "no"
-    toast.add_dismissed(lambda _, __: save_result("yes"))  # 关闭通知时保存 "yes"
+    if file_path != "STARTUP":  # 只有分类通知才需要处理反馈
+        toast.add_activated(lambda _, __: save_result("no"))
+        toast.add_dismissed(lambda _, __: save_result("yes"))
 
     notifier.show(toast)
 
 
 # ==================== 文件监控类 ====================
 class FileHandler(FileSystemEventHandler):
+    def __init__(self):
+        self.running = True
+
     def on_created(self, event):
-        if event.is_directory:
+        if not self.running or event.is_directory:
             return
 
         file_path = event.src_path
@@ -261,16 +253,14 @@ class FileHandler(FileSystemEventHandler):
         log(f"等待 {DELAY_SECONDS} 秒后尝试识别文件：{file_path}")
         time.sleep(DELAY_SECONDS)
 
-        # 检查文件是否仍然存在
-        if not os.path.exists(file_path):
-            log(f"文件已消失: {file_path}")
+        if not self.running or not os.path.exists(file_path):
+            log(f"文件已消失或监视已暂停: {file_path}")
             with processed_lock:
                 if file_path in processed_files:
                     processed_files.remove(file_path)
             return
 
         try:
-            # 尝试打开文件以检查是否可访问
             with open(file_path, 'rb'):
                 pass
         except Exception as e:
@@ -285,42 +275,33 @@ class FileHandler(FileSystemEventHandler):
             ensure_folder_exists(dest_folder)
             dest_path = os.path.join(dest_folder, filename)
             try:
-                # 发送通知并等待用户反馈
                 if not self.handle_user_feedback(subject, file_path):
                     log(f"用户标记为误判，文件保留在原始位置")
                 else:
-                    # 移动文件
                     shutil.move(file_path, dest_path)
                     log(f"文件 {filename} 分类为：{subject}，已归类到 {dest_folder}/")
-
-                    # 清理临时文件
                     try:
                         os.remove('temp_msg.txt')
                     except FileNotFoundError:
                         pass
             except Exception as e:
-                msg = f"文件处理失败：{filename} - {e}"
-                log(msg)
+                log(f"文件处理失败：{filename} - {e}")
         else:
-            msg = f"无法识别文件类型或内容太少：{filename}"
-            log(msg)
-            # 从未知文件集合中移除
+            log(f"无法识别文件类型或内容太少：{filename}")
             with processed_lock:
                 if file_path in processed_files:
                     processed_files.remove(file_path)
 
     def handle_user_feedback(self, subject, file_path):
         log(f"等待用户反馈: {os.path.basename(file_path)}")
-        # 发送通知
         send_toast(subject, file_path)
 
-        # 等待用户反馈
         time.sleep(5)
         try:
             with open('temp_msg.txt', 'r', encoding='utf-8') as f:
                 user_feedback = f.read().strip()
         except FileNotFoundError:
-            user_feedback = "yes"  # 默认认为用户没有点击通知
+            user_feedback = "yes"
 
         if user_feedback == "no":
             log("用户反馈: 分类错误")
@@ -330,46 +311,57 @@ class FileHandler(FileSystemEventHandler):
             log("用户反馈: 分类正确或超时")
             return True
 
-
 # ==================== 用户反馈处理 ====================
 def move_back(file_path):
     filename = os.path.basename(file_path)
     log(f"文件 {filename} 被用户标记为误判，保留在原始位置")
 
-    # 从已处理集合中移除，允许文件被再次处理
     with processed_lock:
         if file_path in processed_files:
             processed_files.remove(file_path)
             log(f"已从处理缓存中移除: {filename}")
 
-    # 清理反馈文件
     try:
         os.remove('temp_msg.txt')
     except FileNotFoundError:
         pass
 
-
 # ==================== 启动后台监控 ====================
+watcher = None
+
 def start_file_watcher():
-    observer = Observer()
-    observer.schedule(FileHandler(), path=config["WATCH_FOLDER"], recursive=False)
-    observer.start()
+    global watcher
+    log('监视文件夹:' + WATCH_FOLDER)
+    log('移动文件夹:' + OUTPUT_BASE_FOLDER)
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+    if watcher is None:
+        watcher = Observer()
+        event_handler = FileHandler()
+        watcher.schedule(event_handler, path=WATCH_FOLDER, recursive=False)
+        watcher.start()
+        log("文件监视已启动")
 
+        # 发送启动通知
+        try:
+            send_toast("", "STARTUP")
+        except Exception as e:
+            log(f"发送启动通知失败: {e}")
+    else:
+        log("文件监视已在运行")
+
+def stop_file_watcher():
+    global watcher
+    if watcher is not None:
+        watcher.stop()
+        watcher.join()
+        watcher = None
+        log("文件监视已暂停")
+    else:
+        log("文件监视未启动")
 
 # ==================== 托盘图标逻辑 ====================
 def create_tray_icon():
-    image = Image.new('RGB', (64, 64), color=(255, 255, 255))
-    dc = ImageDraw.Draw(image)
-    dc.rectangle((10, 10, 54, 54), fill=(0, 128, 255))
-    return image
-
+    return Image.open("icon.ico")
 
 def view_log(icon, item):
     if os.path.exists("file_classifier.log"):
@@ -378,7 +370,8 @@ def view_log(icon, item):
         except:
             opener = "open" if sys.platform == "darwin" else "xdg-open"
             subprocess.call([opener, "file_classifier.log"])
-
+    else:
+        messagebox.showerror("错误", "日志文件不存在")
 
 def clear_log(icon, item):
     try:
@@ -386,7 +379,6 @@ def clear_log(icon, item):
         messagebox.showinfo("提示", "日志已清空")
     except Exception as e:
         messagebox.showerror("错误", f"清空日志失败: {e}")
-
 
 def open_config(icon, item):
     config_editor_path = "config_editor.py"
@@ -404,28 +396,31 @@ def open_config(icon, item):
     except Exception as e:
         messagebox.showerror("错误", f"启动配置界面失败：{e}")
 
+def toggle_watcher(icon, item):
+    if watcher is None:
+        start_file_watcher()
+        item.text = "暂停监视"
+    else:
+        stop_file_watcher()
+        item.text = "恢复监视"
 
 def exit_app(icon, item):
+    if watcher is not None:
+        stop_file_watcher()
     icon.stop()
     os._exit(0)
 
-
 # ==================== 主程序入口 ====================
 if __name__ == "__main__":
-    watcher_thread = threading.Thread(target=start_file_watcher, daemon=True)
-    watcher_thread.start()
+    start_file_watcher()
 
     tray_icon = icon("AI课件分类器", create_tray_icon(), menu=menu(
         item('打开配置界面', open_config),
         item('查看日志', view_log),
         item('清空日志', clear_log),
+        item('暂停/恢复监视', toggle_watcher, default=True),
         item('退出', exit_app)
     ))
 
-    try:
-        os.remove('temp_msg.txt')
-    except FileNotFoundError:
-        pass
 
-    log("AI课件分类器已启动，常驻系统托盘中...")
     tray_icon.run()

@@ -12,5 +12,6 @@
         ".mp4",
         ".wbd"
     ],
-    "AUTO_START": true
+    "AUTO_START": true,
+    "TESSERACT_PATH": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 }

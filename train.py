@@ -6,13 +6,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import joblib
 
-
 def clean_text(text):
     return re.sub(r'\s+', ' ', text).strip()
 
-
-# 设置路径
-data_dir = "extracted_texts"  # 请按科目整理好文件夹
+data_dir = "extracted_texts"
 categories = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
 
 texts = []
