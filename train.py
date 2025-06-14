@@ -9,7 +9,8 @@ import joblib
 def clean_text(text):
     return re.sub(r'\s+', ' ', text).strip()
 
-data_dir = "extracted_texts"
+# 用户输入训练数据地址
+data_dir = input("请输入训练数据目录路径: ").strip()
 categories = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
 
 texts = []
