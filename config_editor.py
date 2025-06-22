@@ -10,8 +10,8 @@ def load_config():
     if not os.path.exists(CONFIG_FILE):
         # 如果配置文件不存在，创建一个默认配置
         config = {
-            "WATCH_FOLDER": os.path.expanduser("D:/定期练手/自动归纳/monitor"),
-            "OUTPUT_BASE_FOLDER": os.path.expanduser("D:/定期练手/自动归纳/classified"),
+            "WATCH_FOLDER": os.path.expanduser("D:/monitor"),
+            "OUTPUT_BASE_FOLDER": os.path.expanduser("D:/classified"),
             "DELAY_SECONDS": 5,
             "SUPPORTED_EXTS": [".docx", ".pdf", ".pptx", ".wps", ".mp4", ".wbd"],
             "AUTO_START": False,
